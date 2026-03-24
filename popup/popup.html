@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="status">
+        <span id="dot" class="dot"></span>
+        <span id="statusText">Idle</span>
+      </div>
+      <button id="toggleBtn">Start</button>
+    </header>
+
+    <div id="stepList">
+      <p id="emptyMsg">No steps yet. Start a capture session.</p>
+    </div>
+
+    <footer>
+      <input id="titleInput" type="text" placeholder="Session title…" />
+      <button id="exportBtn" disabled>Export .md</button>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
