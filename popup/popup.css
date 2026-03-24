@@ -2,7 +2,7 @@
 
 body {
   margin: 0;
-  width: 380px;
+  width: 520px;
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 13px;
   color: #111827;
@@ -92,9 +92,47 @@ button {
 #clearBtn:hover { background: #fee2e2; }
 
 #stepList {
-  max-height: 340px;
+  max-height: 460px;
   overflow-y: auto;
   padding: 8px 10px;
+}
+
+.step-title-input,
+.step-desc-input {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  padding: 1px 0;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.step-title-input {
+  font-size: 12px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.step-title-input:focus {
+  border-bottom-color: #3b82f6;
+}
+
+.step-desc-input {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 3px;
+}
+
+.step-desc-input:focus {
+  border-bottom-color: #3b82f6;
+}
+
+.step-desc-input::placeholder {
+  color: #d1d5db;
 }
 
 .step-mode-select {
@@ -128,8 +166,8 @@ button {
 }
 
 .step-thumb {
-  width: 82px;
-  height: 52px;
+  width: 120px;
+  height: 76px;
   object-fit: cover;
   border-radius: 4px;
   flex-shrink: 0;
@@ -137,8 +175,8 @@ button {
 }
 
 .step-thumb-empty {
-  width: 82px;
-  height: 52px;
+  width: 120px;
+  height: 76px;
   border-radius: 4px;
   flex-shrink: 0;
   background: #f3f4f6;

@@ -85,12 +85,22 @@ function renderStep(step, i) {
   numEl.className = 'step-num';
   numEl.textContent = `Step ${i + 1}`;
 
-  const titleEl = document.createElement('div');
-  titleEl.className = 'step-title';
-  titleEl.title = step.title;
-  titleEl.textContent = step.title;
+  const titleInput = document.createElement('input');
+  titleInput.type = 'text';
+  titleInput.className = 'step-title-input';
+  titleInput.value = step.title;
+  titleInput.addEventListener('blur', () => saveField(step.id, 'title', titleInput.value));
+  titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') titleInput.blur(); });
 
-  // Mode dropdown (only shown when at least one screenshot exists)
+  const descInput = document.createElement('input');
+  descInput.type = 'text';
+  descInput.className = 'step-desc-input';
+  descInput.value = step.description || '';
+  descInput.placeholder = 'Add description…';
+  descInput.addEventListener('blur', () => saveField(step.id, 'description', descInput.value));
+  descInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') descInput.blur(); });
+
+  // Mode dropdown
   const select = document.createElement('select');
   select.className = 'step-mode-select';
   const optZoom = new Option('Zoom', 'zoom');
@@ -101,16 +111,13 @@ function renderStep(step, i) {
   select.addEventListener('change', () => {
     const mode = select.value;
     step.screenshotMode = mode;
-    // Update thumbnail in place
     const imgEl = item.querySelector('.step-thumb');
     const newSrc = thumbSrc(step);
-    if (imgEl && newSrc) {
-      imgEl.src = newSrc;
-    }
+    if (imgEl && newSrc) imgEl.src = newSrc;
     chrome.runtime.sendMessage({ type: 'SET_STEP_MODE', id: step.id, mode });
   });
 
-  info.append(numEl, titleEl, select);
+  info.append(numEl, titleInput, descInput, select);
   item.appendChild(info);
 
   // Actions
@@ -138,6 +145,15 @@ function mkIconBtn(label, disabled) {
   btn.textContent = label;
   btn.disabled = disabled;
   return btn;
+}
+
+// ── field save ────────────────────────────────────────────────────────────────
+
+function saveField(id, field, value) {
+  const step = state.steps.find((s) => s.id === id);
+  if (!step || step[field] === value) return;
+  step[field] = value;
+  chrome.runtime.sendMessage({ type: 'UPDATE_STEP', id, [field]: value });
 }
 
 // ── actions ───────────────────────────────────────────────────────────────────

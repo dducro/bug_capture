@@ -86,6 +86,10 @@ function buildMarkdown(title, steps) {
     lines.push(`**URL:** ${step.url}`);
     lines.push(`**Time:** ${step.time}`);
     lines.push('');
+    if (step.description) {
+      lines.push(`> ${step.description}`);
+      lines.push('');
+    }
     const img = step.screenshotMode === 'zoom'
       ? (step.screenshotZoom ?? step.screenshotFull)
       : step.screenshotFull;
@@ -164,6 +168,16 @@ async function handle(msg, sender) {
     case 'CLEAR_STEPS': {
       state.steps = [];
       await setState(state);
+      return { ok: true };
+    }
+
+    case 'UPDATE_STEP': {
+      const step = state.steps.find((s) => s.id === msg.id);
+      if (step) {
+        if (msg.title !== undefined) step.title = msg.title;
+        if (msg.description !== undefined) step.description = msg.description;
+        await setState(state);
+      }
       return { ok: true };
     }
 
