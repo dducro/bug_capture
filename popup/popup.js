@@ -3,6 +3,9 @@ let state = { recording: false, steps: [] };
 const dot        = document.getElementById('dot');
 const statusText = document.getElementById('statusText');
 const toggleBtn  = document.getElementById('toggleBtn');
+const stepBar    = document.getElementById('stepBar');
+const stepCount  = document.getElementById('stepCount');
+const clearBtn   = document.getElementById('clearBtn');
 const stepList   = document.getElementById('stepList');
 const emptyMsg   = document.getElementById('emptyMsg');
 const titleInput = document.getElementById('titleInput');
@@ -24,6 +27,14 @@ function render() {
     toggleBtn.classList.remove('stop');
   }
 
+  // Step bar
+  if (state.steps.length > 0) {
+    stepBar.classList.add('visible');
+    stepCount.textContent = `${state.steps.length} step${state.steps.length === 1 ? '' : 's'}`;
+  } else {
+    stepBar.classList.remove('visible');
+  }
+
   // Export button
   exportBtn.disabled = state.steps.length === 0;
 
@@ -39,6 +50,12 @@ function render() {
   state.steps.forEach((step, i) => renderStep(step, i));
 }
 
+function thumbSrc(step) {
+  return step.screenshotMode === 'zoom'
+    ? (step.screenshotZoom ?? step.screenshotFull)
+    : step.screenshotFull;
+}
+
 function renderStep(step, i) {
   const total = state.steps.length;
   const item = document.createElement('div');
@@ -46,10 +63,11 @@ function renderStep(step, i) {
   item.dataset.id = step.id;
 
   // Thumbnail
-  if (step.screenshot) {
+  const src = thumbSrc(step);
+  if (src) {
     const img = document.createElement('img');
     img.className = 'step-thumb';
-    img.src = step.screenshot;
+    img.src = src;
     img.alt = '';
     item.appendChild(img);
   } else {
@@ -62,10 +80,37 @@ function renderStep(step, i) {
   // Info
   const info = document.createElement('div');
   info.className = 'step-info';
-  info.innerHTML = `
-    <div class="step-num">Step ${i + 1}</div>
-    <div class="step-title" title="${esc(step.title)}">${esc(step.title)}</div>
-  `;
+
+  const numEl = document.createElement('div');
+  numEl.className = 'step-num';
+  numEl.textContent = `Step ${i + 1}`;
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'step-title';
+  titleEl.title = step.title;
+  titleEl.textContent = step.title;
+
+  // Mode dropdown (only shown when at least one screenshot exists)
+  const select = document.createElement('select');
+  select.className = 'step-mode-select';
+  const optZoom = new Option('Zoom', 'zoom');
+  const optFull = new Option('Full', 'full');
+  select.append(optZoom, optFull);
+  select.value = step.screenshotMode || 'full';
+
+  select.addEventListener('change', () => {
+    const mode = select.value;
+    step.screenshotMode = mode;
+    // Update thumbnail in place
+    const imgEl = item.querySelector('.step-thumb');
+    const newSrc = thumbSrc(step);
+    if (imgEl && newSrc) {
+      imgEl.src = newSrc;
+    }
+    chrome.runtime.sendMessage({ type: 'SET_STEP_MODE', id: step.id, mode });
+  });
+
+  info.append(numEl, titleEl, select);
   item.appendChild(info);
 
   // Actions
@@ -93,14 +138,6 @@ function mkIconBtn(label, disabled) {
   btn.textContent = label;
   btn.disabled = disabled;
   return btn;
-}
-
-function esc(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 // ── actions ───────────────────────────────────────────────────────────────────
@@ -132,6 +169,14 @@ toggleBtn.addEventListener('click', async () => {
     state.recording = true;
     state.steps = [];
   }
+  render();
+});
+
+// ── clear ─────────────────────────────────────────────────────────────────────
+
+clearBtn.addEventListener('click', () => {
+  state.steps = [];
+  chrome.runtime.sendMessage({ type: 'CLEAR_STEPS' });
   render();
 });
 
